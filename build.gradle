@@ -1,0 +1,30 @@
+apply plugin: 'application'
+
+group = 'com.amazonaws.samples'
+version = '1.0'
+
+description = "aws-java-sample"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+mainClassName = "com.amazonaws.samples.S3Sample"
+
+sourceSets {
+  main {
+    resources {
+      srcDir "${System.env.HOME}/.aws/"
+    }
+  }
+}
+
+repositories {
+  jcenter()
+}
+dependencies {
+    compile group: 'com.amazonaws', name: 'aws-java-sdk', version:'1.9.6'
+}
+
+task wrapper(type: Wrapper) {
+  distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+}
