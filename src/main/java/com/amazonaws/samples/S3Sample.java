@@ -14,14 +14,7 @@
  */
 package com.amazonaws.samples;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.UUID;
 
 import com.amazonaws.AmazonClientException;
@@ -30,13 +23,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon S3 using
@@ -50,7 +37,12 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
  * ~/.aws/credentials (C:\Users\USER_NAME\.aws\credentials for Windows
  * users) before you try to run this sample.
  */
-public class S3Sample {
+class S3Sample {
+
+    /**
+     * TODO IoC
+     */
+    private static final Regions REGION = Regions.US_EAST_1;
 
     public static void main(String[] args) throws IOException {
         /*
@@ -62,12 +54,9 @@ public class S3Sample {
          * aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
          */
 
-        AmazonS3 s3 = new AmazonS3Client();
-        Region usWest2 = Region.getRegion(Regions.US_WEST_2);
-        s3.setRegion(usWest2);
-
-        String bucketName = "my-first-s3-bucket-" + UUID.randomUUID();
-        String key = "MyObjectKey";
+        final AmazonS3 s3 = new AmazonS3Client();
+        final Region region = Region.getRegion(REGION);
+        s3.setRegion(region);
 
         System.out.println("===========================================");
         System.out.println("Getting Started with Amazon S3");
@@ -82,6 +71,8 @@ public class S3Sample {
              * You can optionally specify a location for your bucket if you want to
              * keep your data closer to your applications or users.
              */
+            String bucketName = "my-first-s3-bucket-" + UUID.randomUUID();
+            String key = "MyObjectKey";
             System.out.println("Creating bucket " + bucketName + "\n");
             s3.createBucket(bucketName);
 
@@ -118,9 +109,11 @@ public class S3Sample {
              * ETags, and selectively downloading a range of an object.
              */
             System.out.println("Downloading an object");
-            S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
+            final S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
             System.out.println("Content-Type: "  + object.getObjectMetadata().getContentType());
-            displayTextInputStream(object.getObjectContent());
+            try (final InputStream objectContent = object.getObjectContent()) {
+                displayTextInputStream(objectContent);
+            }
 
             /*
              * List objects in your bucket by prefix - There are many options for
@@ -179,16 +172,16 @@ public class S3Sample {
      * @throws IOException
      */
     private static File createSampleFile() throws IOException {
-        File file = File.createTempFile("aws-java-sdk-", ".txt");
+        final File file = File.createTempFile("aws-java-sdk-", ".txt");
         file.deleteOnExit();
-
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file));
-        writer.write("abcdefghijklmnopqrstuvwxyz\n");
-        writer.write("01234567890112345678901234\n");
-        writer.write("!@#$%^&*()-=[]{};':',.<>/?\n");
-        writer.write("01234567890112345678901234\n");
-        writer.write("abcdefghijklmnopqrstuvwxyz\n");
-        writer.close();
+        try (final OutputStream outputStream = new FileOutputStream(file);
+             final Writer writer = new OutputStreamWriter(outputStream)) {
+            writer.write("abcdefghijklmnopqrstuvwxyz\n");
+            writer.write("01234567890112345678901234\n");
+            writer.write("!@#$%^&*()-=[]{};':',.<>/?\n");
+            writer.write("01234567890112345678901234\n");
+            writer.write("abcdefghijklmnopqrstuvwxyz\n");
+        }
 
         return file;
     }
