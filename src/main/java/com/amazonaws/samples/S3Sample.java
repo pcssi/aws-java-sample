@@ -184,18 +184,18 @@ class S3Sample {
       LOG.info("Deleting bucket " + bucketName + "\n");
       s3.deleteBucket(bucketName);
     } catch (AmazonServiceException ase) {
-      LOG.info("Caught an AmazonServiceException, which means your request made it "
+      LOG.error("Caught an AmazonServiceException, which means your request made it "
           + "to Amazon S3, but was rejected with an error response for some reason.");
-      LOG.info("Error Message:    {}", ase.getMessage());
-      LOG.info("HTTP Status Code: {}", ase.getStatusCode());
-      LOG.info("AWS Error Code:   {}", ase.getErrorCode());
-      LOG.info("Error Type:       {}", ase.getErrorType());
-      LOG.info("Request ID:       {}", ase.getRequestId());
+      LOG.error("Error Message:    {}", ase.getMessage());
+      LOG.error("HTTP Status Code: {}", ase.getStatusCode());
+      LOG.error("AWS Error Code:   {}", ase.getErrorCode());
+      LOG.error("Error Type:       {}", ase.getErrorType());
+      LOG.error("Request ID:       {}", ase.getRequestId());
     } catch (AmazonClientException ace) {
-      LOG.info("Caught an AmazonClientException, which means the client encountered "
+      LOG.error("Caught an AmazonClientException, which means the client encountered "
           + "a serious internal problem while trying to communicate with S3, "
           + "such as not being able to access the network.");
-      LOG.info("Error Message: {}", ace.getMessage());
+      LOG.error("Error Message: {}", ace.getMessage());
     }
     LOG.info("\n");
     final long endTime = System.nanoTime();
