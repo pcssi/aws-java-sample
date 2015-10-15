@@ -21,6 +21,8 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.UUID;
@@ -39,6 +41,8 @@ import java.util.UUID;
  */
 class S3Sample {
 
+  private static final Logger LOG = LoggerFactory.getLogger(S3Sample.class);
+  
   /**
    * TODO IoC
    */
@@ -58,9 +62,9 @@ class S3Sample {
     final Region region = Region.getRegion(REGION);
     s3.setRegion(region);
 
-    System.out.println("===========================================");
-    System.out.println("Getting Started with Amazon S3");
-    System.out.println("===========================================\n");
+    LOG.info("===========================================");
+    LOG.info("Getting Started with Amazon S3");
+    LOG.info("===========================================\n");
 
     try {
             /*
@@ -73,17 +77,17 @@ class S3Sample {
              */
       String bucketName = "my-first-s3-bucket-" + UUID.randomUUID();
       String key = "MyObjectKey";
-      System.out.println("Creating bucket " + bucketName + "\n");
+      LOG.info("Creating bucket {}\n", bucketName);
       s3.createBucket(bucketName);
 
             /*
              * List the buckets in your account
              */
-      System.out.println("Listing buckets");
+      LOG.info("Listing buckets");
       for (Bucket bucket : s3.listBuckets()) {
-        System.out.println(" - " + bucket.getName());
+        LOG.info(" - {}", bucket.getName());
       }
-      System.out.println();
+      LOG.info("\n");
 
             /*
              * Upload an object to your bucket - You can easily upload a file to
@@ -93,7 +97,7 @@ class S3Sample {
              * like content-type and content-encoding, plus additional metadata
              * specific to your applications.
              */
-      System.out.println("Uploading a new object to S3 from a file\n");
+      LOG.info("Uploading a new object to S3 from a file\n");
       s3.putObject(new PutObjectRequest(bucketName, key, createSampleFile()));
 
             /*
@@ -108,9 +112,9 @@ class S3Sample {
              * conditional downloading of objects based on modification times,
              * ETags, and selectively downloading a range of an object.
              */
-      System.out.println("Downloading an object");
+      LOG.info("Downloading an object");
       final S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
-      System.out.println("Content-Type: " + object.getObjectMetadata().getContentType());
+      LOG.info("Content-Type: {}", object.getObjectMetadata().getContentType());
       try (final InputStream objectContent = object.getObjectContent()) {
         displayTextInputStream(objectContent);
       }
@@ -123,21 +127,21 @@ class S3Sample {
              * use the AmazonS3.listNextBatchOfObjects(...) operation to retrieve
              * additional results.
              */
-      System.out.println("Listing objects");
+      LOG.info("Listing objects");
       ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
           .withBucketName(bucketName)
           .withPrefix("My"));
       for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
-        System.out.println(" - " + objectSummary.getKey() + "  " +
-            "(size = " + objectSummary.getSize() + ")");
+        LOG.info(" - {}", objectSummary.getKey() + "  " +
+            "(size = {}", objectSummary.getSize() + ")");
       }
-      System.out.println();
+      LOG.info("\n");
 
             /*
              * Delete an object - Unless versioning has been turned on for your bucket,
              * there is no way to undelete an object, so use caution when deleting objects.
              */
-      System.out.println("Deleting an object\n");
+      LOG.info("Deleting an object\n");
       s3.deleteObject(bucketName, key);
 
             /*
@@ -145,21 +149,21 @@ class S3Sample {
              * deleted, so remember to delete any objects from your buckets before
              * you try to delete them.
              */
-      System.out.println("Deleting bucket " + bucketName + "\n");
+      LOG.info("Deleting bucket " + bucketName + "\n");
       s3.deleteBucket(bucketName);
     } catch (AmazonServiceException ase) {
-      System.out.println("Caught an AmazonServiceException, which means your request made it "
+      LOG.info("Caught an AmazonServiceException, which means your request made it "
           + "to Amazon S3, but was rejected with an error response for some reason.");
-      System.out.println("Error Message:    " + ase.getMessage());
-      System.out.println("HTTP Status Code: " + ase.getStatusCode());
-      System.out.println("AWS Error Code:   " + ase.getErrorCode());
-      System.out.println("Error Type:       " + ase.getErrorType());
-      System.out.println("Request ID:       " + ase.getRequestId());
+      LOG.info("Error Message:    {}", ase.getMessage());
+      LOG.info("HTTP Status Code: {}", ase.getStatusCode());
+      LOG.info("AWS Error Code:   {}", ase.getErrorCode());
+      LOG.info("Error Type:       {}", ase.getErrorType());
+      LOG.info("Request ID:       {}", ase.getRequestId());
     } catch (AmazonClientException ace) {
-      System.out.println("Caught an AmazonClientException, which means the client encountered "
+      LOG.info("Caught an AmazonClientException, which means the client encountered "
           + "a serious internal problem while trying to communicate with S3, "
           + "such as not being able to access the network.");
-      System.out.println("Error Message: " + ace.getMessage());
+      LOG.info("Error Message: {}", ace.getMessage());
     }
   }
 
@@ -197,9 +201,9 @@ class S3Sample {
       String line = reader.readLine();
       if (line == null) break;
 
-      System.out.println("    " + line);
+      LOG.info("    {}", line);
     }
-    System.out.println();
+    LOG.info("\n");
   }
 
 }
