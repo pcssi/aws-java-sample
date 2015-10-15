@@ -11,9 +11,11 @@ targetCompatibility = JavaVersion.VERSION_1_8
 mainClassName = "com.amazonaws.samples.S3Sample"
 
 sourceSets {
-  main {
-    resources {
-      srcDir "${System.env.HOME}/.aws/"
+  if (!System.properties.'idea.active') {
+    main {
+      resources {
+        srcDir "${System.env.HOME}/.aws/"
+      }
     }
   }
 }
