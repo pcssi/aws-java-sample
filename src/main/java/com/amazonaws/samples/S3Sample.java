@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 class S3Sample {
 
   private static final Logger LOG = LoggerFactory.getLogger(S3Sample.class);
-  
+
   /**
    * TODO IoC
    */
@@ -73,7 +73,7 @@ class S3Sample {
     final List<Regions> regionsList = new ArrayList<>(Arrays.asList(regions));
     regionsList.remove(Regions.CN_NORTH_1);
     regionsList.remove(Regions.GovCloud);
-    ((ArrayList)regionsList).trimToSize();
+    ((ArrayList) regionsList).trimToSize();
     return Collections.unmodifiableList(regionsList);
   }
 
