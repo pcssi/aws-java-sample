@@ -56,7 +56,12 @@ class S3Sample {
    */
   private static final String PROFILE_NAME = "foo";
 
-  public static void main(String[] args) throws IOException {
+  public static void main(final String[] args) throws IOException {
+    executeS3Example();
+  }
+
+  @SuppressWarnings("unused")
+  private static void testAllRegions() throws IOException {
     final List<Regions> regionsForTesting = getRegionsForTesting();
     for (Regions region : regionsForTesting) {
       final Region regionFromRegionsEnum = Region.getRegion(region);
@@ -77,7 +82,6 @@ class S3Sample {
     return Collections.unmodifiableList(regionsList);
   }
 
-  @SuppressWarnings("unused")
   private static void executeS3Example() throws IOException {
     executeS3Example(Region.getRegion(REGION));
   }
