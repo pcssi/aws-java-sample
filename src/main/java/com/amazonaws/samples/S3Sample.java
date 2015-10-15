@@ -16,6 +16,8 @@ package com.amazonaws.samples;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -48,6 +50,11 @@ class S3Sample {
    */
   private static final Regions REGION = Regions.US_EAST_1;
 
+  /**
+   * TODO IoC
+   */
+  private static final String PROFILE_NAME = "foo";
+
   public static void main(String[] args) throws IOException {
         /*
          * Create your credentials file at ~/.aws/credentials (C:\Users\USER_NAME\.aws\credentials for Windows users) 
@@ -58,7 +65,11 @@ class S3Sample {
          * aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
          */
 
-    final AmazonS3 s3 = new AmazonS3Client();
+    /**
+     * TODO IoC
+     */
+    final AWSCredentialsProvider credentialsProvider = new ProfileCredentialsProvider(PROFILE_NAME);
+    final AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
     final Region region = Region.getRegion(REGION);
     s3.setRegion(region);
 
