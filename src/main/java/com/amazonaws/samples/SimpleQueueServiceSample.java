@@ -70,7 +70,7 @@ public class SimpleQueueServiceSample {
     try {
       // Create a queue
       LOG.trace("Creating a new SQS queue called MyQueue.\n");
-      CreateQueueRequest createQueueRequest = new CreateQueueRequest("MyQueue");
+      final CreateQueueRequest createQueueRequest = new CreateQueueRequest("MyQueue");
       String myQueueUrl = sqs.createQueue(createQueueRequest).getQueueUrl();
 
       // List queues
@@ -82,12 +82,13 @@ public class SimpleQueueServiceSample {
 
       // Send a message
       LOG.trace("Sending a message to MyQueue.\n");
-      sqs.sendMessage(new SendMessageRequest(myQueueUrl, "This is my message text."));
+      final SendMessageRequest sendMessageRequest = new SendMessageRequest(myQueueUrl, "This is my message text.");
+      sqs.sendMessage(sendMessageRequest);
 
       // Receive messages
       LOG.trace("Receiving messages from MyQueue.\n");
-      ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl);
-      List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
+      final ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl);
+      final List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
       for (Message message : messages) {
         LOG.trace("  Message");
         LOG.trace("    MessageId:     " + message.getMessageId());
@@ -105,11 +106,13 @@ public class SimpleQueueServiceSample {
       // Delete a message
       LOG.trace("Deleting a message.\n");
       String messageRecieptHandle = messages.get(0).getReceiptHandle();
-      sqs.deleteMessage(new DeleteMessageRequest(myQueueUrl, messageRecieptHandle));
+      final DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(myQueueUrl, messageRecieptHandle);
+      sqs.deleteMessage(deleteMessageRequest);
 
       // Delete a queue
       LOG.trace("Deleting the test queue.\n");
-      sqs.deleteQueue(new DeleteQueueRequest(myQueueUrl));
+      final DeleteQueueRequest deleteQueueRequest = new DeleteQueueRequest(myQueueUrl);
+      sqs.deleteQueue(deleteQueueRequest);
     } catch (AmazonServiceException ase) {
       LOG.error("Caught an AmazonServiceException, which means your request made it " +
           "to Amazon SQS, but was rejected with an error response for some reason.");
