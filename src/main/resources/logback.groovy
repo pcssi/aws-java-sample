@@ -14,6 +14,6 @@ appender(STDOUT, ConsoleAppender) {
   }
 }
 
-root(WARN, [STDOUT])
+logger("com.amazonaws.samples.S3Sample", WARN, [STDOUT])
 logger("com.amazonaws.samples.SimpleQueueServiceSample", TRACE, [STDOUT])
 
