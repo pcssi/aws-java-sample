@@ -27,7 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon S3 using
@@ -56,22 +57,35 @@ class S3Sample {
   private static final String PROFILE_NAME = "foo";
 
   public static void main(String[] args) throws IOException {
-        /*
-         * Create your credentials file at ~/.aws/credentials (C:\Users\USER_NAME\.aws\credentials for Windows users) 
-         * and save the following lines after replacing the underlined values with your own.
-         *
-         * [default]
-         * aws_access_key_id = YOUR_ACCESS_KEY_ID
-         * aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
-         */
+    final List<Regions> regionsForTesting = getRegionsForTesting();
+    for (Regions region : regionsForTesting) {
+      final Region regionFromRegionsEnum = Region.getRegion(region);
+      LOG.warn("{}\n", regionFromRegionsEnum);
+      executeS3Example(regionFromRegionsEnum);
+    }
+  }
 
-    /**
-     * TODO IoC
-     */
-    final AWSCredentialsProvider credentialsProvider = new ProfileCredentialsProvider(PROFILE_NAME);
-    final AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
-    final Region region = Region.getRegion(REGION);
-    s3.setRegion(region);
+  /**
+   * After testing Regions.CN_NORTH_1 and Regions.GovCloud did not contain credentials.
+   */
+  private static List<Regions> getRegionsForTesting() {
+    final Regions[] regions = Regions.values();
+    final List<Regions> regionsList = new ArrayList<>(Arrays.asList(regions));
+    regionsList.remove(Regions.CN_NORTH_1);
+    regionsList.remove(Regions.GovCloud);
+    ((ArrayList)regionsList).trimToSize();
+    return Collections.unmodifiableList(regionsList);
+  }
+
+  @SuppressWarnings("unused")
+  private static void executeS3Example() throws IOException {
+    executeS3Example(Region.getRegion(REGION));
+  }
+
+  private static void executeS3Example(final Region region) throws IOException {
+    //TODO make aspect
+    final long startTime = System.nanoTime();
+    final AmazonS3 s3 = getAmazonS3(region);
 
     LOG.info("===========================================");
     LOG.info("Getting Started with Amazon S3");
@@ -109,7 +123,8 @@ class S3Sample {
              * specific to your applications.
              */
       LOG.info("Uploading a new object to S3 from a file\n");
-      s3.putObject(new PutObjectRequest(bucketName, key, createSampleFile()));
+      final PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, createSampleFile());
+      s3.putObject(putObjectRequest);
 
             /*
              * Download an object - When you download an object, you get all of
@@ -124,7 +139,8 @@ class S3Sample {
              * ETags, and selectively downloading a range of an object.
              */
       LOG.info("Downloading an object");
-      final S3Object object = s3.getObject(new GetObjectRequest(bucketName, key));
+      final GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
+      final S3Object object = s3.getObject(getObjectRequest);
       LOG.info("Content-Type: {}", object.getObjectMetadata().getContentType());
       try (final InputStream objectContent = object.getObjectContent()) {
         displayTextInputStream(objectContent);
@@ -139,9 +155,10 @@ class S3Sample {
              * additional results.
              */
       LOG.info("Listing objects");
-      ObjectListing objectListing = s3.listObjects(new ListObjectsRequest()
+      final ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
           .withBucketName(bucketName)
-          .withPrefix("My"));
+          .withPrefix("My");
+      final ObjectListing objectListing = s3.listObjects(listObjectsRequest);
       for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
         LOG.info(" - {}", objectSummary.getKey() + "  " +
             "(size = {}", objectSummary.getSize() + ")");
@@ -176,6 +193,47 @@ class S3Sample {
           + "such as not being able to access the network.");
       LOG.info("Error Message: {}", ace.getMessage());
     }
+    LOG.info("\n");
+    final long endTime = System.nanoTime();
+    final long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds. See: http://stackoverflow.com/a/180191
+    LOG.warn("Duration in nanoseconds: {}", duration);
+    LOG.warn("Duration in milliseconds: {}", TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS));
+    LOG.warn("Duration in seconds: {}", TimeUnit.SECONDS.convert(duration, TimeUnit.NANOSECONDS));
+    LOG.warn("High Precision Duration in nanoseconds: {}", duration);
+    LOG.warn("High Precision Duration in milliseconds: {}", (double) duration / 1000000.0d);
+    LOG.warn("High Precision Duration in seconds: {}", (double) duration / 1000000000.0d);
+    LOG.warn("\n");
+  }
+
+  /**
+   * Create your credentials file at ~/.aws/credentials (C:\Users\USER_NAME\.aws\credentials for Windows users)
+   * and save the following lines after replacing the underlined values with your own.
+   * <p>
+   * [default]
+   * aws_access_key_id = YOUR_ACCESS_KEY_ID
+   * aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
+   */
+  @SuppressWarnings("unused")
+  private static AmazonS3 getAmazonS3() {
+    return getAmazonS3(Region.getRegion(REGION));
+  }
+
+  /**
+   * Create your credentials file at ~/.aws/credentials (C:\Users\USER_NAME\.aws\credentials for Windows users)
+   * and save the following lines after replacing the underlined values with your own.
+   * <p>
+   * [default]
+   * aws_access_key_id = YOUR_ACCESS_KEY_ID
+   * aws_secret_access_key = YOUR_SECRET_ACCESS_KEY
+   */
+  private static AmazonS3 getAmazonS3(final Region region) {
+    /**
+     * TODO IoC
+     */
+    final AWSCredentialsProvider credentialsProvider = new ProfileCredentialsProvider(PROFILE_NAME);
+    final AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
+    s3.setRegion(region);
+    return s3;
   }
 
   /**
@@ -196,7 +254,6 @@ class S3Sample {
       writer.write("01234567890112345678901234\n");
       writer.write("abcdefghijklmnopqrstuvwxyz\n");
     }
-
     return file;
   }
 
@@ -206,15 +263,17 @@ class S3Sample {
    * @param input The input stream to display as text.
    * @throws IOException
    */
-  private static void displayTextInputStream(InputStream input) throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-    while (true) {
-      String line = reader.readLine();
-      if (line == null) break;
-
-      LOG.info("    {}", line);
+  private static void displayTextInputStream(final InputStream input) throws IOException {
+    try (final Reader streamReader = new InputStreamReader(input);
+         final BufferedReader reader = new BufferedReader(streamReader)) {
+      while (true) {
+        String line = reader.readLine();
+        if (line == null) {
+          break;
+        }
+        LOG.info("    {}", line);
+      }
+      LOG.info("\n");
     }
-    LOG.info("\n");
   }
-
 }
